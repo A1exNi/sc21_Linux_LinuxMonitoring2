@@ -1,0 +1,74 @@
+#!/bin/bash
+
+function generate_name {
+  if [[ $4 = "n" ]]
+  then
+    name=$1/
+  else
+    name=$1
+  fi
+  str="$2"
+  for (( i=0; i < ${#2}; i++ ))
+  do
+    char=${str:i:1}
+    name=$name$char
+  done
+  for (( i=0; i < $(( $3 + 4 )); i++ ))
+  do
+    name=$name$char
+  done
+  echo $name
+}
+
+function get_free_space {
+  answer=0
+  free_space=$( df -h / | grep '/$' | awk '{print $4}' | sed 's/,/./' )
+  if [[ ${free_space: -1} != 'G' ]]
+  then 
+    answer=1
+  else
+    if [ $( echo "${free_space::-1} <= 1" | bc ) -eq 1 ]
+    then
+      answer=1
+    fi
+  fi
+  echo $answer
+}
+
+function generate {
+  name_log="gen.log"
+  name_path="/tmp/test"
+  number_dirs=5
+  number_files=3
+  for (( i=0; i < $number_dirs; i++ ))
+  do
+    is_not_free=$( get_free_space )
+    if [[ $is_not_free = 1 ]]
+    then
+      break
+    fi
+    name=$( generate_name $name_path $1 $i "n" )
+    year=$( date +"%Y" )
+    year=${year:2:2}
+    name=$name"_"$( date +"%d%m" )$year
+    mkdir -p $name
+    echo $name $( date +"%d.%m.%Y" ) >> $name_log
+    IFS='.'
+    read -a array <<< $2
+    for (( j=0; j < $number_files; j++ ))
+    do
+      IFS=' '
+      name_f=$( generate_name $name ${array[0]} $j "n" )
+      ext_f=$( generate_name "." ${array[1]} -4 "e" )
+      path=$name_f"_"$( date +"%d%m" )$year$ext_f
+      is_not_free=$( get_free_space )
+      if [[ $is_not_free = 1 ]]
+      then
+	break
+      else
+        fallocate -l $3M $path
+        echo $path $( date +"%d.%m.%Y" ) $3M >> $name_log
+      fi
+    done
+  done
+}

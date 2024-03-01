@@ -1,0 +1,42 @@
+#!/bin/bash
+code=( 200 201 400 401 403 404 500 501 502 503 )
+fileNames=( "../04/day_0.log" "../04/day_1.log" )
+
+function sort_code {
+  for (( i = 0; i < 10; i++ ))
+  do
+    awk -v n="${code[$i]}" 'BEGIN {FS="\""}
+    {
+      str=substr($3, 2, 3)
+      if (str == n) print $0
+    }' $@
+  done
+}
+
+function print_ip {
+  awk 'BEGIN {count = 0}
+  {
+    uniq = 0
+    for (val in arr)
+      if (arr[val] == $1) uniq = 1
+    if (uniq == 0) arr[count] = $1
+    count++
+  }
+  END {
+    for (val in arr) print arr[val]
+  }' $@
+}
+
+function print_error {
+  awk 'BEGIN {FS="\""}
+  {
+    str=substr($3, 2, 1)
+    if (str == 4 || str == 5) print $0
+  }' $@
+}
+
+function print_error_ip {
+  print_error $@ > buf.log
+  print_ip "buf.log"
+  rm -f "buf.log"
+}

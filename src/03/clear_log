@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function clear_log {
+  path_to_log=../02/gen.log
+  if [ -f $path_to_log ]
+  then
+    IFS=$'\n'
+    for line in $( cat $path_to_log )
+    do
+      IFS=' '
+      read -a array <<< $line
+      rm -rf ${array[0]}
+    done
+  else
+    echo File log not exist.
+  fi
+}

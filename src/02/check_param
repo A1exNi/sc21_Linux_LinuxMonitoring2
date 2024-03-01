@@ -1,0 +1,68 @@
+#!/bin/bash
+
+function check_error3 {
+  if [[ ! $1 =~ ^[0-9]+$ ]]
+  then
+    error=3
+  else
+    if [ $1 -gt 100 ] || [ $1 -lt 0 ]
+    then
+      error=3
+    fi
+  fi
+  echo $error
+}
+
+function count_dot {
+  count=0
+  for (( i=0; i < ${#1}; i++ )) 
+  do
+    if [[ ${1:i:1} == '.' ]]
+    then
+      count=$[ $count + 1 ]
+    fi
+  done
+  echo $count
+}
+
+function check_error2 {
+  if [[ ! $1 =~ ^[A-Za-z.]+$ ]]
+  then
+    error=2
+  elif [ $( count_dot $1 ) -ne 1 ]
+  then
+    error=2
+  else
+    IFS='.'
+    read -a array <<< $1
+    if [ ${#array[0]} -gt 7 ] || [ ${#array[1]} -gt 3 ]
+    then
+      error=2
+    fi
+  fi
+  echo $error
+}
+
+function check_error1 {
+  if [[ ! $1 =~ ^[A-Za-z]+$ ]]
+  then
+   error=1
+  elif [[ ${#1} -gt 7 ]]
+  then
+    error=1
+  fi
+  echo $error
+}
+
+function check_param {
+  error=0
+  if [ $# -ne 3 ]
+  then
+    error=4
+  else
+    error=$( check_error3 $3 )
+    error=$( check_error2 $2 )
+    error=$( check_error1 $1 )
+  fi
+  echo $error
+}
